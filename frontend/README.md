@@ -17,6 +17,13 @@
     ```sh
     npm run dev
     ```
+4. Deployment
+    * Configure environment variables
+    * Run deployment script
+```bash
+./deploy.sh
+```
+
 
 ## Project Structure
 
