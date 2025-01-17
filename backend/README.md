@@ -73,3 +73,19 @@ curl -X POST http://localhost:8000/chat \
 
 The frontend runs on http://localhost:5173
 The backend runs on http://localhost:8000
+
+# Deployment to Cloud Run
+1. Configure GCP project:
+```bash
+gcloud init --configuration=chatbot-deploy
+gcloud config set project fluted-citizen-269819
+gcloud config set run/region us-central1
+```
+2. Deploy the service:
+```bash
+./deploy.sh
+```
+3. Test the deployment:
+```bash
+./tests/test_deploy.sh
+```

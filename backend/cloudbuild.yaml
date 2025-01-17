@@ -15,5 +15,9 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'OPENAI_API_KEY=${_OPENAI_API_KEY}'
 options:
   logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _OPENAI_API_KEY: ''  # Will be provided during build
