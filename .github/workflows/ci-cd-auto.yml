@@ -59,6 +59,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
+
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -71,3 +81,6 @@ jobs:
 
       - name: Deploy Frontend
         run: make deploy-frontend
+        env:
+          # Add necessary environment variables for the build
+          VITE_BACKEND_URL: https://chatbot-backend-614936797883.us-central1.run.app
