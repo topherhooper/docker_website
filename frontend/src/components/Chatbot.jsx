@@ -21,7 +21,11 @@ const Chatbot = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': 'https://chatbot-frontend-614936797883.us-central1.run.app'
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({ message }),
       });
 
