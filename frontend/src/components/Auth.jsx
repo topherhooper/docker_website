@@ -9,6 +9,27 @@ const Auth = ({ onSuccess }) => {
     setError('Authentication failed. Please try again.');
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/verify_token`, {
+        method: 'POST',  // Must use POST to match backend endpoint
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${credentialResponse.credential}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Token verification failed');
+      }
+
+      onSuccess(credentialResponse);
+    } catch (err) {
+      console.error('Authentication error:', err);
+      handleError();
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100">
       <div className="mb-8 text-center">
@@ -18,7 +39,7 @@ const Auth = ({ onSuccess }) => {
       </div>
       <div className="rounded-lg bg-white p-8 shadow-lg">
         <GoogleLogin
-          onSuccess={onSuccess}
+          onSuccess={handleGoogleSuccess}
           onError={handleError}
           useOneTap
         />
