@@ -21,8 +21,8 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - 'OPENAI_API_KEY=${_OPENAI_API_KEY}'
+      - '--set-secrets'
+      - 'OPENAI_API_KEY=openai-api-key:latest'
       - '--force'  # Force update even if the container is the same
 options:
   logging: CLOUD_LOGGING_ONLY
