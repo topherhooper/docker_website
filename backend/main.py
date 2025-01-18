@@ -1,10 +1,14 @@
+from typing import List, Dict, Optional
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from chatgpt import ChatGPT
+from dotenv import load_dotenv
 from google.oauth2 import id_token
 from google.auth.transport import requests
+
+load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -31,7 +35,7 @@ security = HTTPBearer()
 
 class ChatMessage(BaseModel):
     message: str
-    conversation: list[dict] = []  # Optional conversation history
+    conversation: Optional[List[Dict]] = []  # Fixed type annotation
 
 @app.post("/verify_token")
 async def verify_token(credentials: HTTPAuthorizationCredentials = Security(security)):

@@ -1,4 +1,4 @@
-.PHONY: build deploy-backend deploy-frontend deploy-all clean dev check
+.PHONY: build deploy-backend deploy-frontend deploy-all clean dev check test test-backend test-frontend
 
 # Build commands
 build-backend:
@@ -52,6 +52,17 @@ check:
 	@echo "Checking frontend URL..."
 	gcloud run services describe chatbot-frontend --platform managed --region us-central1 --format 'value(status.url)'
 
+# Test commands
+test-backend:
+	@echo "Running backend tests..."
+	cd backend && pytest tests/ -v --cov=.
+
+test-frontend:
+	@echo "Running frontend tests..."
+	cd frontend && npm test
+
+test: test-backend test-frontend
+
 # Help
 help:
 	@echo "Available targets:"
@@ -63,3 +74,4 @@ help:
 	@echo "  dev-frontend   - Start frontend in dev mode"
 	@echo "  clean          - Clean both services"
 	@echo "  check          - Check deployment status"
+	@echo "  test           - Run tests for both services"
