@@ -1,6 +1,11 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/fluted-citizen-269819/chatbot-frontend', '.']
+    args: [
+      'build',
+      '-t', 'gcr.io/fluted-citizen-269819/chatbot-frontend',
+      '--build-arg', 'VITE_BACKEND_URL=$(gcloud run services describe chatbot-backend --platform managed --region us-central1 --format "value(status.url)")',
+      '.'
+    ]
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/fluted-citizen-269819/chatbot-frontend']
   - name: 'gcr.io/cloud-builders/gcloud'
