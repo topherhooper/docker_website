@@ -3,6 +3,8 @@ steps:
     args: [
       'build',
       '--no-cache',  # Disable build cache
+      '--build-arg', 'VITE_BACKEND_URL=https://chatbot-backend-614936797883.us-central1.run.app',
+      '--secret', 'id=google_oauth,src=sm://fluted-citizen-269819/frontend-google-oauth-credentials:latest',
       '-t', 'gcr.io/fluted-citizen-269819/chatbot-frontend:$COMMIT_SHA', # Add specific tag
       '-t', 'gcr.io/fluted-citizen-269819/chatbot-frontend:latest',
       '.'
@@ -23,3 +25,7 @@ steps:
       - '--allow-unauthenticated'
 options:
   logging: CLOUD_LOGGING_ONLY
+availableSecrets:
+  secretManager:
+    - versionName: projects/fluted-citizen-269819/secrets/frontend-google-oauth-credentials/versions/latest
+      env: 'GOOGLE_OAUTH_CREDENTIALS'

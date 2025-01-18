@@ -1,18 +1,7 @@
 #!/bin/bash
-
-# Strict mode
 set -euo pipefail
 
-# Ensure we're logged in
-if ! gcloud auth print-access-token >/dev/null 2>&1; then
-    echo "Not logged in to gcloud. Run 'gcloud auth login' first"
-    exit 1
-fi
-
-# Get backend URL
-BACKEND_URL="https://chatbot-backend-614936797883.us-central1.run.app"
-
-# Check if frontend service exists
+# Check if service exists
 SERVICE_EXISTS=$(gcloud run services describe chatbot-frontend \
   --platform managed \
   --region us-central1 \
@@ -20,12 +9,20 @@ SERVICE_EXISTS=$(gcloud run services describe chatbot-frontend \
 
 if [ -n "$SERVICE_EXISTS" ]; then
   echo "Updating existing frontend service"
-  # Configure docker auth
   gcloud auth configure-docker --quiet || exit 1
   
+  # Get latest version of the secret
+  gcloud secrets versions access latest \
+    --secret=frontend-google-oauth-credentials \
+    --project=fluted-citizen-269819 > oauth_credentials.json
+
+  # Build with local secret file
   docker build \
-    --build-arg VITE_BACKEND_URL="${BACKEND_URL}" \
+    --secret id=google_oauth,src=oauth_credentials.json \
     -t gcr.io/fluted-citizen-269819/chatbot-frontend . || exit 1
+    
+  # Clean up
+  rm oauth_credentials.json
     
   docker push gcr.io/fluted-citizen-269819/chatbot-frontend || exit 1
   

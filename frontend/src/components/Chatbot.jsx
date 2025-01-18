@@ -1,37 +1,55 @@
 import React, { useState } from 'react';
 import ChatMessage from './ChatMessage.jsx';
 import ChatInput from './ChatInput.jsx';
+import Auth from './Auth.jsx';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
     { text: "Hey yung fella. What do you want?", isUser: false }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userToken, setUserToken] = useState(null);
 
-  const BACKEND_URL = 'https://chatbot-backend-614936797883.us-central1.run.app';
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+  const handleAuthSuccess = async (credentialResponse) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/verify_token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${credentialResponse.credential}`
+        }
+      });
+
+      if (response.ok) {
+        setUserToken(credentialResponse.credential);
+        setIsAuthenticated(true);
+      } else {
+        console.error('Token validation failed');
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+    }
+  };
 
   const handleSendMessage = async (message) => {
     try {
       setIsLoading(true);
-      // Add user message to chat
       setMessages(prev => [...prev, { text: message, isUser: true }]);
 
-      // Create conversation history from existing messages
       const conversation = messages.map(msg => ({
         role: msg.isUser ? "user" : "assistant",
         content: msg.text
       }));
 
-      // Send message and conversation history to backend
       const response = await fetch(`${BACKEND_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': 'https://chatbot-frontend-614936797883.us-central1.run.app'
+          'Authorization': `Bearer ${userToken}`,
         },
-        mode: 'cors',
-        credentials: 'omit',
         body: JSON.stringify({ 
           message,
           conversation: conversation 
@@ -43,15 +61,12 @@ const Chatbot = () => {
       }
 
       const data = await response.json();
-      
-      // Add bot response to chat
       setMessages(prev => [...prev, {
         text: data.response,
         isUser: false
       }]);
     } catch (error) {
       console.error('Error:', error);
-      // Add error message to chat
       setMessages(prev => [...prev, {
         text: "Sorry, I encountered an error. Please try again.",
         isUser: false
@@ -60,6 +75,10 @@ const Chatbot = () => {
       setIsLoading(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return <Auth onSuccess={handleAuthSuccess} />;
+  }
 
   return (
     <div className="rounded-3xl border border-gray-200 bg-white p-8 shadow-2xl">

@@ -1,7 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from chatgpt import ChatGPT
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -24,12 +27,41 @@ app.add_middleware(
 # Initialize ChatGPT
 chatgpt = ChatGPT()
 
+security = HTTPBearer()
+
 class ChatMessage(BaseModel):
     message: str
     conversation: list[dict] = []  # Optional conversation history
 
+@app.post("/verify_token")
+async def verify_token(credentials: HTTPAuthorizationCredentials = Security(security)):
+    try:
+        token = credentials.credentials
+        # Specify the CLIENT_ID of your app
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            requests.Request(),
+            "614936797883-64ho69sc6hoefqn0oqkeq84t48q2369c.apps.googleusercontent.com"
+        )
+        
+        if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+            raise ValueError('Invalid issuer')
+            
+        return {"valid": True, "user_id": idinfo['sub']}
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
 @app.post("/chat")
-async def chat(chat_message: ChatMessage):
+async def chat(
+    chat_message: ChatMessage,
+    credentials: HTTPAuthorizationCredentials = Security(security)
+):
+    # Verify token before processing chat
+    try:
+        await verify_token(credentials)
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Invalid authentication")
+    
     try:
         # If conversation history is provided, update chatbot's history
         if chat_message.conversation:

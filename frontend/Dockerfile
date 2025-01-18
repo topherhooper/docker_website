@@ -3,9 +3,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# Use build arg for backend URL
-ARG VITE_BACKEND_URL
-ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+
+# Mount secrets during build
+RUN --mount=type=secret,id=google_oauth \
+    mkdir -p .credentials && \
+    cp /run/secrets/google_oauth .credentials/frontend_google_oath.json
+
 RUN npm run build
 
 FROM nginx:alpine
