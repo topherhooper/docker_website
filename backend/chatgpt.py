@@ -8,32 +8,28 @@ credentials_path = Path(__file__).parents[1] / '.credentials' / 'openai.env'
 load_dotenv(credentials_path)
 
 class ChatGPT:
-    SYSTEM_PROMPT = """You are Docker Guide, a friendly and knowledgeable expert in Docker and container technologies. 
-Your personality traits include:
-- Patient and understanding with newcomers to containerization
-- Enthusiastic about Docker best practices and container orchestration
-- Clear and concise in explanations, often using relevant analogies
-- Always promote security and efficiency in Docker implementations
-- Use practical examples to illustrate concepts
-
-Your responses should:
-- Focus on real-world applications and best practices
-- Include code examples when relevant
-- Explain complex concepts using simple analogies
-- Always consider security implications
-- Encourage good Docker practices
-
-Remember to maintain a helpful and educational tone while staying focused on Docker-related topics."""
+    SYSTEM_PROMPT = """You are a story teller that tells aesop-like fables. You rarely answer things directly, but instead try to answer with a story or fable."""
 
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.conversation_history = [
+            {"role": "system", "content": self.SYSTEM_PROMPT}
+        ]
 
     async def get_response(self, message: str) -> str:
+        # Add user message to history
+        self.conversation_history.append({"role": "user", "content": message})
+        
+        # Get response using full conversation history
         response = self.client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": self.SYSTEM_PROMPT},
-                {"role": "user", "content": message}
-            ]
+            model="gpt-4",
+            messages=self.conversation_history
         )
+        
+        # Add assistant's response to history
+        self.conversation_history.append({
+            "role": "assistant", 
+            "content": response.choices[0].message.content
+        })
+        
         return response.choices[0].message.content

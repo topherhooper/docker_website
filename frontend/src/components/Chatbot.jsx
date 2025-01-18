@@ -4,7 +4,7 @@ import ChatInput from './ChatInput.jsx';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
-    { text: "Hello! I'm your Docker assistant. How can I help you today?", isUser: false }
+    { text: "Hey yung fella. What do you want?", isUser: false }
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -16,7 +16,13 @@ const Chatbot = () => {
       // Add user message to chat
       setMessages(prev => [...prev, { text: message, isUser: true }]);
 
-      // Send message to backend
+      // Create conversation history from existing messages
+      const conversation = messages.map(msg => ({
+        role: msg.isUser ? "user" : "assistant",
+        content: msg.text
+      }));
+
+      // Send message and conversation history to backend
       const response = await fetch(`${BACKEND_URL}/chat`, {
         method: 'POST',
         headers: {
@@ -26,7 +32,10 @@ const Chatbot = () => {
         },
         mode: 'cors',
         credentials: 'omit',
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ 
+          message,
+          conversation: conversation 
+        }),
       });
 
       if (!response.ok) {
@@ -56,7 +65,7 @@ const Chatbot = () => {
     <div className="rounded-3xl border border-gray-200 bg-white p-8 shadow-2xl">
       <div className="mx-auto max-w-3xl rounded-2xl bg-white shadow-lg">
         <div className="border-b border-gray-100 bg-white p-4">
-          <h2 className="text-lg font-semibold text-gray-700">Docker Assistant</h2>
+          <h2 className="text-lg font-semibold text-gray-700">Old Man Hooper</h2>
           <p className="text-sm text-gray-500">
             {isLoading ? 'Thinking...' : 'Online • Ready to help'}
           </p>

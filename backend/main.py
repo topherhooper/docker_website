@@ -26,10 +26,18 @@ chatgpt = ChatGPT()
 
 class ChatMessage(BaseModel):
     message: str
+    conversation: list[dict] = []  # Optional conversation history
 
 @app.post("/chat")
 async def chat(chat_message: ChatMessage):
     try:
+        # If conversation history is provided, update chatbot's history
+        if chat_message.conversation:
+            chatgpt.conversation_history = [
+                {"role": "system", "content": ChatGPT.SYSTEM_PROMPT},
+                *chat_message.conversation
+            ]
+            
         response = await chatgpt.get_response(chat_message.message)
         return {"response": response}
     except Exception as e:
