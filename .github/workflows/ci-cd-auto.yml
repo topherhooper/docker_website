@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-  build:
+  deploy-backend:
     needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
     steps:
@@ -53,6 +53,21 @@ jobs:
         run: make deploy-backend
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  deploy-frontend:
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: fluted-citizen-269819
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Deploy Frontend
         run: make deploy-frontend
