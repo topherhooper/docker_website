@@ -8,14 +8,13 @@ const Chatbot = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const BACKEND_URL = 'https://chatbot-backend-614936797883.us-central1.run.app';
+
   const handleSendMessage = async (message) => {
     try {
       setIsLoading(true);
       // Add user message to chat
       setMessages(prev => [...prev, { text: message, isUser: true }]);
-
-      // Use the deployed backend URL from environment variables
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
       // Send message to backend
       const response = await fetch(`${BACKEND_URL}/chat`, {

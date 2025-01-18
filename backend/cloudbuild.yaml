@@ -23,6 +23,7 @@ steps:
       - '--allow-unauthenticated'
       - '--set-env-vars'
       - 'OPENAI_API_KEY=${_OPENAI_API_KEY}'
+      - '--force'  # Force update even if the container is the same
 options:
   logging: CLOUD_LOGGING_ONLY
 substitutions:

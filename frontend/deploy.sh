@@ -10,13 +10,7 @@ if ! gcloud auth print-access-token >/dev/null 2>&1; then
 fi
 
 # Get backend URL
-BACKEND_URL=$(gcloud run services describe chatbot-backend \
-  --platform managed \
-  --region us-central1 \
-  --format 'value(status.url)') || {
-    echo "Failed to get backend URL. Is backend service running?"
-    exit 1
-}
+BACKEND_URL="https://chatbot-backend-614936797883.us-central1.run.app"
 
 # Check if frontend service exists
 SERVICE_EXISTS=$(gcloud run services describe chatbot-frontend \

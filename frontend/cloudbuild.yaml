@@ -5,7 +5,6 @@ steps:
       '--no-cache',  # Disable build cache
       '-t', 'gcr.io/fluted-citizen-269819/chatbot-frontend:$COMMIT_SHA', # Add specific tag
       '-t', 'gcr.io/fluted-citizen-269819/chatbot-frontend:latest',
-      '--build-arg', 'VITE_BACKEND_URL=$(gcloud run services describe chatbot-backend --platform managed --region us-central1 --format "value(status.url)")',
       '.'
     ]
   - name: 'gcr.io/cloud-builders/docker'
