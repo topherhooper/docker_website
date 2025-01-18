@@ -23,6 +23,7 @@ if [ -n "$SERVICE_EXISTS" ]; then
   gcloud run deploy chatbot-backend \
     --image gcr.io/fluted-citizen-269819/chatbot-backend \
     --platform managed \
+    --allow-unauthenticated \
     --region us-central1 || exit 1
 else
   echo "Creating new service via Cloud Build"
