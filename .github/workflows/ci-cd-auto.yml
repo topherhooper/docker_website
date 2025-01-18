@@ -81,6 +81,3 @@ jobs:
 
       - name: Deploy Frontend
         run: make deploy-frontend
-        env:
-          # Add necessary environment variables for the build
-          VITE_BACKEND_URL: https://chatbot-backend-614936797883.us-central1.run.app

@@ -30,7 +30,8 @@ if [ -n "$SERVICE_EXISTS" ]; then
     --image gcr.io/fluted-citizen-269819/chatbot-frontend \
     --platform managed \
     --region us-central1 \
-    --allow-unauthenticated || exit 1
+    --allow-unauthenticated \
+    --set-env-vars=VITE_BACKEND_URL=https://chatbot-backend-614936797883.us-central1.run.app || exit 1
 else
   echo "Creating new frontend service via Cloud Build"
   gcloud builds submit --config cloudbuild.yaml || exit 1

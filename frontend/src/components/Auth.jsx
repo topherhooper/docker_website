@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import PropTypes from 'prop-types';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const Auth = ({ onSuccess }) => {
   const [error, setError] = useState(null);
 
@@ -11,7 +12,7 @@ const Auth = ({ onSuccess }) => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/verify_token`, {
+      const response = await fetch(`${BACKEND_URL}/verify_token`, {
         method: 'POST',  // Must use POST to match backend endpoint
         headers: {
           'Content-Type': 'application/json',
