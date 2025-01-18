@@ -60,3 +60,4 @@ logs/
 # Local development
 *.local
 .scratch/
+*/.coverage
