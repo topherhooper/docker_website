@@ -2,19 +2,21 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'gcr.io/fluted-citizen-269819/chatbot-frontend',
+      '--no-cache',  # Disable build cache
+      '-t', 'gcr.io/fluted-citizen-269819/chatbot-frontend:$COMMIT_SHA', # Add specific tag
+      '-t', 'gcr.io/fluted-citizen-269819/chatbot-frontend:latest',
       '--build-arg', 'VITE_BACKEND_URL=$(gcloud run services describe chatbot-backend --platform managed --region us-central1 --format "value(status.url)")',
       '.'
     ]
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/fluted-citizen-269819/chatbot-frontend']
+    args: ['push', '--all-tags', 'gcr.io/fluted-citizen-269819/chatbot-frontend']
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
       - 'deploy'
       - 'chatbot-frontend'
       - '--image'
-      - 'gcr.io/fluted-citizen-269819/chatbot-frontend'
+      - 'gcr.io/fluted-citizen-269819/chatbot-frontend:$COMMIT_SHA'
       - '--region'
       - 'us-central1'
       - '--platform'

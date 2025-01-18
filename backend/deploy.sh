@@ -1,13 +1,25 @@
 #!/bin/bash
 
+# Strict mode
+set -euo pipefail
+
 # Read API key
-API_KEY=$(grep OPENAI_API_KEY ../.credentials/openai.env | cut -d '=' -f2)
+API_KEY=$(grep OPENAI_API_KEY ../.credentials/openai.env | cut -d '=' -f2) || {
+    echo "Failed to read API key from ../.credentials/openai.env"
+    exit 1
+}
+
+# Check if API key is empty
+if [ -z "$API_KEY" ]; then
+    echo "API key is empty"
+    exit 1
+fi
 
 # Check if service exists
 SERVICE_EXISTS=$(gcloud run services describe chatbot-backend \
   --platform managed \
   --region us-central1 \
-  --format="value(status.url)" 2>/dev/null)
+  --format="value(status.url)" 2>/dev/null || true)
 
 if [ -n "$SERVICE_EXISTS" ]; then
   echo "Updating existing service: chatbot-backend"
@@ -17,10 +29,10 @@ if [ -n "$SERVICE_EXISTS" ]; then
     --platform managed \
     --region us-central1 \
     --allow-unauthenticated \
-    --set-env-vars="OPENAI_API_KEY=${API_KEY}"
+    --set-env-vars="OPENAI_API_KEY=${API_KEY}" || exit 1
 else
   echo "Creating new service via Cloud Build"
   # Create new service using Cloud Build
   gcloud builds submit --config cloudbuild.yaml \
-    --substitutions=_OPENAI_API_KEY="${API_KEY}"
+    --substitutions=_OPENAI_API_KEY="${API_KEY}" || exit 1
 fi
