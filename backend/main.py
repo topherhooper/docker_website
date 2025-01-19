@@ -1,5 +1,5 @@
 from typing import List, Dict, Optional
-from fastapi import FastAPI, HTTPException, Security, Depends
+from fastapi import FastAPI, HTTPException, Security, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from functools import lru_cache
+import time
+from collections import defaultdict
+from fastapi.responses import JSONResponse
 
 load_dotenv()
 
@@ -56,20 +59,62 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Security(secu
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
 
+# Add rate limiting configuration
+RATE_LIMIT_DURATION = 20  # Window Duration
+RATE_LIMIT_REQUESTS = 5  # Maximum requests per window
+
+# Store for rate limiting
+app.state.rate_limit_store = defaultdict(list)
+
+async def check_rate_limit(request: Request, token_data: dict = Depends(verify_token)):
+    user_id = token_data["user_id"]
+    now = time.time()
+    rate_limit_store = request.app.state.rate_limit_store
+    
+    # Cleanup old entries completely
+    cutoff = now - RATE_LIMIT_DURATION
+    for user in list(rate_limit_store.keys()):
+        # Remove old timestamps
+        rate_limit_store[user] = [t for t in rate_limit_store[user] if t > cutoff]
+        # Remove user if no recent requests
+        if not rate_limit_store[user]:
+            del rate_limit_store[user]
+    
+    # Check current user's limit
+    rate_limit_store[user_id] = [
+        req_time for req_time in rate_limit_store[user_id] 
+        if now - req_time < RATE_LIMIT_DURATION
+    ]
+    
+    if len(rate_limit_store[user_id]) >= RATE_LIMIT_REQUESTS:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Please try again later."
+        )
+    
+    rate_limit_store[user_id].append(now)
+    return True
+
 @app.post("/chat")
 async def chat(
     chat_message: ChatMessage,
+    rate_limit: bool = Depends(check_rate_limit),
     token_data: dict = Depends(verify_token),
     chatgpt: ChatGPT = Depends(get_chatgpt)
 ):
-    # Remove the direct call to verify_token(...)
-    if chat_message.conversation:
-        chatgpt.conversation_history = [
-            {"role": "system", "content": ChatGPT.SYSTEM_PROMPT},
-            *chat_message.conversation
-        ]
+    rate_limit_store = app.state.rate_limit_store
+    user_id = token_data["user_id"]
+    requests_remaining = RATE_LIMIT_REQUESTS - len(rate_limit_store[user_id])
+    
     response = await chatgpt.get_response(chat_message.message)
-    return {"response": response}
+    return JSONResponse(
+        content={"response": response},
+        headers={
+            "X-RateLimit-Limit": str(RATE_LIMIT_REQUESTS),
+            "X-RateLimit-Remaining": str(requests_remaining),
+            "X-RateLimit-Reset": str(int(time.time() + RATE_LIMIT_DURATION))
+        }
+    )
 
 @app.get("/health")
 async def health_check():
