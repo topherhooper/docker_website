@@ -60,27 +60,34 @@ def test_chat_with_valid_auth(client, mock_chatgpt, mock_verify_token):
     assert response.status_code == 200, response.json()
 
 def test_rate_limit_test_suite(client, mock_verify_token):
-    # Make requests up to the limit
-    for _ in range(4):
+    with patch("time.time") as mock_time:
+        # Set initial time
+        mock_time.return_value = 0
+        
+        # Make requests up to the limit
+        for _ in range(4):
+            response = client.post(
+                "/chat",
+                json={"message": "test message"},
+                headers={"Authorization": "Bearer valid_token"}
+            )
+            assert response.status_code == 200
+        
+        # Next request should fail
+        response = client.post(
+            "/chat",
+            json={"message": "test message"},
+            headers={"Authorization": "Bearer valid_token"}
+        )
+        assert response.status_code == 429
+        assert "Rate limit exceeded" in response.json()["detail"]
+        
+        # Move time forward to reset rate limit
+        mock_time.return_value = RATE_LIMIT_DURATION + 1
+        
         response = client.post(
             "/chat",
             json={"message": "test message"},
             headers={"Authorization": "Bearer valid_token"}
         )
         assert response.status_code == 200
-    # Next request should fail
-    response = client.post(
-        "/chat",
-        json={"message": "test message"},
-        headers={"Authorization": "Bearer valid_token"}
-    )
-    assert response.status_code == 429
-    assert "Rate limit exceeded" in response.json()["detail"]
-
-    time.sleep(20)  # Wait for rate limit to reset
-    response = client.post(
-        "/chat",
-        json={"message": "test message"},
-        headers={"Authorization": "Bearer valid_token"}
-    )
-    assert response.status_code == 200
