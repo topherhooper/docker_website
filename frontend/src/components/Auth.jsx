@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import PropTypes from 'prop-types';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const BACKEND_URL = "https://chatbot-backend-614936797883.us-central1.run.app";
 const Auth = ({ onSuccess }) => {
   const [error, setError] = useState(null);
 

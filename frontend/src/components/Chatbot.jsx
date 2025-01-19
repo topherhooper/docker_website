@@ -11,7 +11,7 @@ const Chatbot = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userToken, setUserToken] = useState(null);
 
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const BACKEND_URL = "https://chatbot-backend-614936797883.us-central1.run.app";
 
   const handleAuthSuccess = async (credentialResponse) => {
     try {
