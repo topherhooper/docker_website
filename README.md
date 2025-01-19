@@ -1,28 +1,42 @@
+
 # Docker Website
+
 A web application featuring a Docker-specialized chatbot assistant built with React and FastAPI.
 
 ## Technology Stack
-- Frontend: React + Vite + TailwindCSS
-- Backend: Python FastAPI
-- Container: Docker
+
+- **Frontend:** React + Vite + TailwindCSS
+- **Backend:** Python FastAPI
+- **Container:** Docker
+- **Authentication:** Google OAuth2
+- **CI/CD:** GitHub Actions + Google Cloud Run
 
 ## Prerequisites
-- Docker
-- Docker Compose
+
+- Docker and Docker Compose
+- Google Cloud Platform account (for deployment)
+- Node.js 18+ (for local frontend development)
+- Python 3.11+ (for local backend development)
 
 ## Quick Start
 
-1. Setup environment:
-   ```sh
-   # Create .credentials directory and OpenAI API key file
-   mkdir .credentials
-   echo "OPENAI_API_KEY=your_key_here" > .credentials/openai.env
-   ```
+1. Setup credentials:
+```sh
+# Create credentials directory
+mkdir .credentials
+
+# Setup OpenAI API key
+echo "OPENAI_API_KEY=your_key_here" > .credentials/openai.env
+
+# Setup Google OAuth credentials (required for auth)
+# Copy your Google OAuth credentials JSON to:
+.credentials/frontend_google_oath.json
+```
 
 2. Start the application:
-   ```sh
-   docker compose up --build
-   ```
+```sh
+docker compose up --build
+```
 
 3. Access the application:
    - Frontend: http://localhost:5173
@@ -30,36 +44,61 @@ A web application featuring a Docker-specialized chatbot assistant built with Re
 
 ## Development
 
-The application runs in Docker containers with hot-reload enabled:
-- Frontend container serves React application on port 5173
-- Backend container serves FastAPI application on port 8000
+The application uses Docker with hot-reload for development:
+- Frontend container (React): Port 5173
+- Backend container (FastAPI): Port 8000
 
 ### Project Structure
+
 ```
 .
-├── frontend/            # React frontend
-├── backend/            # Python FastAPI backend
-└── docker-compose.yml  # Docker services configuration
+├── frontend/               # React frontend
+│   ├── src/               # Source code
+│   ├── tests/             # Frontend tests
+│   └── Dockerfile         # Frontend container config
+├── backend/               # Python FastAPI backend
+│   ├── tests/             # Backend tests
+│   └── Dockerfile         # Backend container config
+├── .github/workflows/     # GitHub Actions CI/CD
+└── docker-compose.yml     # Local development config
+```
+
+## Testing
+
+Run all tests:
+```sh
+make test
+```
+
+Run specific tests:
+```sh
+# Backend tests
+make test-backend
+
+# Frontend tests
+make test-frontend
+```
+
+## Deployment
+
+The application deploys automatically to Google Cloud Run on pushes to the master branch.
+
+Manual deployment:
+```sh
+# Deploy both services
+make deploy-all
+
+# Deploy specific service
+make deploy-backend
+make deploy-frontend
 ```
 
 ## API Endpoints
 
 - `GET /health` - Health check endpoint
-- `POST /chat` - Chat endpoint for interacting with the Docker assistant
+- `POST /chat` - Chat endpoint (requires authentication)
+- `POST /verify_token` - Google OAuth token verification
 
-This update:
-1. Provides clear setup instructions
-2. Documents the Docker-based architecture
-3. Lists the technology stack
-4. Includes development information
-5. Maintains essential API documentation
+## License
 
-Since you're using Docker Compose, this README focuses on the containerized setup rather than local development instructions.
-This update:
-1. Provides clear setup instructions
-2. Documents the Docker-based architecture
-3. Lists the technology stack
-4. Includes development information
-5. Maintains essential API documentation
-
-Since you're using Docker Compose, this README focuses on the containerized setup rather than local development instructions.
+This project is licensed under the MIT License.
