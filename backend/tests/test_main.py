@@ -1,7 +1,8 @@
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 import pytest
-from main import app, get_chatgpt, verify_token
+import time
+from main import RATE_LIMIT_DURATION, app, get_chatgpt, verify_token
 
 class MockChatGPT:
     def __init__(self):
@@ -57,3 +58,36 @@ def test_chat_with_valid_auth(client, mock_chatgpt, mock_verify_token):
         headers={"Authorization": "Bearer valid_token"}
     )
     assert response.status_code == 200, response.json()
+
+def test_rate_limit_test_suite(client, mock_verify_token):
+    with patch("time.time") as mock_time:
+        # Set initial time
+        mock_time.return_value = 0
+        
+        # Make requests up to the limit
+        for _ in range(4):
+            response = client.post(
+                "/chat",
+                json={"message": "test message"},
+                headers={"Authorization": "Bearer valid_token"}
+            )
+            assert response.status_code == 200
+        
+        # Next request should fail
+        response = client.post(
+            "/chat",
+            json={"message": "test message"},
+            headers={"Authorization": "Bearer valid_token"}
+        )
+        assert response.status_code == 429
+        assert "Rate limit exceeded" in response.json()["detail"]
+        
+        # Move time forward to reset rate limit
+        mock_time.return_value = RATE_LIMIT_DURATION + 1
+        
+        response = client.post(
+            "/chat",
+            json={"message": "test message"},
+            headers={"Authorization": "Bearer valid_token"}
+        )
+        assert response.status_code == 200
